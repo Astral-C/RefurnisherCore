@@ -3,7 +3,7 @@
 
 namespace RefurnisherCore::JMP {
 
-    nlohmann::json DecompileJMP(bStream::CStream& fileData){
+    void DecompileJMP(nlohmann::json& jsonData, bStream::CStream& fileData){
 
         int32_t m_entryCount = fileData.readInt32();
         int32_t m_fieldCount = fileData.readInt32();
@@ -12,10 +12,8 @@ namespace RefurnisherCore::JMP {
 
         std::vector<jField> m_fields;
 
-        nlohmann::json jsonData;
         nlohmann::json jsonFields;
         nlohmann::json jsonValues;
-
 
         for(int i = 0; i < m_fieldCount; i++){
             m_fields.push_back(jField(fileData));
@@ -35,25 +33,40 @@ namespace RefurnisherCore::JMP {
         jsonData["entrySize"] = m_entrySize;
         jsonData["fields"] = jsonFields;
         jsonData["values"] = jsonValues;
-
-        return jsonData;
     }
 
-    /*
-    bStream::CMemoryStream CompileJMP(nlohmann::json& jsonData){
-        //Write JMP Header
-        stream.writeInt32(m_entryCount);
-        stream.writeInt32(m_fieldCount);
-        stream.writeUInt32(m_entryOffset);
-        stream.writeInt32(m_entrySize);
+    
+    void CompileJMP(nlohmann::json& jsonData, bStream::CStream& out){
 
-        //Write field LUT
-        for(int f = 0; f < m_fieldCount; f++){
-            stream.writeUInt32(m_fields.at(f).hash);
-            stream.writeUInt32(m_fields.at(f).bitmask);
-            stream.writeUInt16(m_fields.at(f).start);
-            stream.writeUInt8(m_fields.at(f).shift);
-            stream.writeUInt8((uint8_t)m_fields.at(f).type);
+        std::vector<jValue> values;
+        std::vector<jField> fields;
+
+        int32_t m_entryCount = jsonData.at("entryCount");
+        int32_t m_fieldCount = jsonData.at("fieldCount");
+        uint32_t m_entryOffset = jsonData.at("entryOffset");
+        int32_t m_entrySize = jsonData.at("entrySize");
+        
+        //Write JMP Header
+        out.writeInt32(m_entryCount);
+        out.writeInt32(m_fieldCount);
+        out.writeUInt32(m_entryOffset);
+        out.writeInt32(m_entrySize);
+        std::cout << jsonData.at("fields").is_array() << std::endl;
+        std::cout << jsonData.at("fields")[0].at("hash") << std::endl;
+        //Write field LUT and populate fields array
+        for(auto& field : jsonData.at("fields")){
+            out.writeUInt32(field.at("hash"));
+            out.writeUInt32(field.at("bitmask"));
+            out.writeUInt32(field.at("start"));
+            out.writeUInt32(field.at("shift"));
+            out.writeUInt32(field.at("type"));
+            fields.push_back(static_cast<jField>(field));
+        }
+
+        for(auto& value : jsonData.at("values")){
+            if(!value.is_string()){
+                values.push_back(static_cast<jValue>(value));
+            }
         }
 
         //Write Entries
@@ -63,14 +76,14 @@ namespace RefurnisherCore::JMP {
             bitmaskBuffer.clear();
             for(int y = 0; y < m_fieldCount; y++){
                 //TODO: Fix this up
-                jValue curVal = getField(x, y);
-                jField curField = getFieldDesc(y);
-                stream.seek(m_entryOffset + (m_entrySize * x) + curField.start);
+                jValue curVal = values.at(x * y + m_fieldCount);
+                jField curField = fields.at(y);
+                out.seek(m_entryOffset + (m_entrySize * x) + curField.start);
 
                 switch (curField.type) {
                 case jType::JINT32:
                     if(curField.bitmask == 0xFFFFFFFFu){
-                        stream.writeInt32(curVal.vInt);
+                        out.writeInt32(curVal.vInt);
                     } else {
                         //If the bitmask buffer doesn't contain the current start, add it
                         if(bitmaskBuffer.count(curField.start) == 0){
@@ -80,33 +93,34 @@ namespace RefurnisherCore::JMP {
                     }
                     break;
                 case jType::JFLOAT:
-                    stream.writeFloat(curVal.vFlt);
+                    out.writeFloat(curVal.vFlt);
                     break;
                 case jType::JSTRING:
-                    stream.writeString(std::string(curVal.vStr));
+                    out.writeString(std::string(curVal.vStr));
                     break;
                 }
             }
             std::map<uint16_t, uint32_t>::iterator it;
             for(it = bitmaskBuffer.begin(); it != bitmaskBuffer.end(); it++){
-                stream.seek(m_entryOffset + (m_entrySize * x) + it->first);
-                stream.writeUInt32(it->second);
+                out.seek(m_entryOffset + (m_entrySize * x) + it->first);
+                out.writeUInt32(it->second);
             }
         }
-    }*/
+    }
 
     void to_json(nlohmann::json& j, const jValue& v){
         j = nlohmann::json{
-            {"int", v.vInt},
-            {"str", v.vStr},
-            {"float", v.vFlt}
+            {"jint", v.vInt},
+            {"jstr", v.vStr},
+            {"jfloat", v.vFlt}
         };
     }
 
     void from_json(const nlohmann::json& j, jValue& v){
-        j.at("int").get_to(v.vInt);
-        j.at("str").get_to(v.vStr); 
-        j.at("float").get_to(v.vFlt);
+        j.at("jint").get_to(v.vInt);
+        j.at("jfloat").get_to(v.vFlt);
+        //This is gross.
+        strncpy(v.vStr, j.at("jstr").get<std::string>().c_str(), 32);
     }
 
     void to_json(nlohmann::json& j, const jField& v){
@@ -122,8 +136,8 @@ namespace RefurnisherCore::JMP {
 
     void from_json(const nlohmann::json& j, jField& v){
         j.at("hash").get_to(v.hash);
-        j.at("bitmask").get_to(v.bitmask); 
-        j.at("start").get_to(v.start);
+        j.at("bitmask").get_to(v.bitmask);
+        j.at("start").get_to(v.start); 
         j.at("shift").get_to(v.shift);
         j.at("type").get_to(v.type);
     }

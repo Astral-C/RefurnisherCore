@@ -60,7 +60,8 @@ namespace RefurnisherCore::JMP {
 
     //json guff
 
-    nlohmann::json DecompileJMP(bStream::CStream& fileData);
+    void DecompileJMP(nlohmann::json& jsonData, bStream::CStream& fileData);
+    void CompileJMP(nlohmann::json& jsonData, bStream::CStream& fileData);
 
 
     void to_json(nlohmann::json& json, const jValue& v);

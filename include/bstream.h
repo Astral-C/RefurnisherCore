@@ -50,6 +50,7 @@ class CStream {
 		virtual int32_t readInt32() = 0;
 
 		virtual float readFloat() = 0;
+		virtual void writeFloat(float) = 0;
 
 		virtual int8_t peekInt8(size_t) = 0;
 		virtual uint8_t peekUInt8(size_t) = 0;
@@ -60,6 +61,13 @@ class CStream {
 		virtual int32_t peekInt32(size_t) = 0;
 		virtual uint32_t peekUInt32(size_t) = 0;
 
+		virtual void writeInt32(int32_t) = 0;
+		virtual void writeUInt32(uint32_t) = 0;
+		
+		virtual void writeInt16(int16_t) = 0;
+		virtual void writeUInt16(uint16_t) = 0;
+
+		virtual void writeString(std::string) = 0;
 		virtual std::string peekString(size_t, size_t) = 0;
 		virtual std::string readString(size_t) = 0;
 };

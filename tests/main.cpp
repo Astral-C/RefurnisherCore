@@ -3,15 +3,20 @@
 int main(){
 
     bStream::CFileStream f("characterinfo", bStream::Endianess::Big, bStream::OpenMode::In);
+    nlohmann::json jsonOut;
 
-    nlohmann::json jsonOut = RefurnisherCore::JMP::DecompileJMP(f);
-    std::string jsonString;
-    jsonOut.get_to(jsonString);
+    RefurnisherCore::JMP::DecompileJMP(jsonOut, f);
+    std::printf("Read JMP...\n");
 
     std::ofstream jsonFile;
     jsonFile.open("test.json", std::ios::openmode::_S_out);
-    jsonFile << jsonString;
+    jsonFile << jsonOut;
     jsonFile.close();
+
+    bStream::CFileStream f2("testinfo", bStream::Endianess::Big, bStream::OpenMode::Out);
+    RefurnisherCore::JMP::CompileJMP(jsonOut, f2);
+    
+    
 
     return 0;
 }
