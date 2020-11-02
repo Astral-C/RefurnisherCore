@@ -1,16 +1,23 @@
+#include <chrono>
 #include "../include/jmp.h"
 
 int main(int argc, char* argv[]){
 
-    bStream::CFileStream f("test_files/characterinfo", bStream::Endianess::Big, bStream::OpenMode::In);
-    nlohmann::json jsonOut;
+	bStream::CFileStream inJmp("test_files/jmp/characterinfo", bStream::Endianess::Big, bStream::OpenMode::In);
+	nlohmann::json jsonOut;
 
-    Refurnisher::JMP::DecompileJMP(jsonOut, f);
+	auto start = std::chrono::high_resolution_clock::now();
+	Refurnisher::JMP::DecompileJMP(jsonOut, inJmp);
+	auto end = std::chrono::high_resolution_clock::now();
+	auto deserializeTime = std::chrono::duration_cast<std::chrono::microseconds>(end - start).count();
 
-    std::ofstream jsonFile;
-    jsonFile.open("test.json", std::ios::openmode::_S_out);
-    jsonFile << jsonOut;
-    jsonFile.close();
+	bStream::CMemoryStream outJmp(1, bStream::Endianess::Big, bStream::OpenMode::Out);
+	start = std::chrono::high_resolution_clock::now();
+	Refurnisher::JMP::CompileJMP(jsonOut, outJmp);
+	end = std::chrono::high_resolution_clock::now();
+	auto serializeTime = std::chrono::duration_cast<std::chrono::microseconds>(end - start).count();
 
-    return 0;
+	std::printf("JMP Deserialization took %ldms\nJMP Serialization took %ldms\n", deserializeTime, serializeTime);
+
+	return 0;
 }
