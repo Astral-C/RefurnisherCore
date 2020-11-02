@@ -1,7 +1,7 @@
-#include "jfile.h"
+#include "jmp.h"
 #include <iostream>
 
-namespace RefurnisherCore::JMP {
+namespace Refurnisher::JMP {
 
     void DecompileJMP(nlohmann::json& jsonData, bStream::CStream& fileData){
 
@@ -35,7 +35,6 @@ namespace RefurnisherCore::JMP {
         jsonData["values"] = jsonValues;
     }
 
-    
     void CompileJMP(nlohmann::json& jsonData, bStream::CStream& out){
 
         std::vector<jValue> values;
@@ -45,7 +44,7 @@ namespace RefurnisherCore::JMP {
         int32_t m_fieldCount = jsonData.at("fieldCount");
         uint32_t m_entryOffset = jsonData.at("entryOffset");
         int32_t m_entrySize = jsonData.at("entrySize");
-        
+
         //Write JMP Header
         out.writeInt32(m_entryCount);
         out.writeInt32(m_fieldCount);
@@ -137,7 +136,7 @@ namespace RefurnisherCore::JMP {
     void from_json(const nlohmann::json& j, jField& v){
         j.at("hash").get_to(v.hash);
         j.at("bitmask").get_to(v.bitmask);
-        j.at("start").get_to(v.start); 
+        j.at("start").get_to(v.start);
         j.at("shift").get_to(v.shift);
         j.at("type").get_to(v.type);
     }

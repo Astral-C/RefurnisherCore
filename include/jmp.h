@@ -7,7 +7,7 @@
 #include "bstream.h"
 #include "json.hpp"
 
-namespace RefurnisherCore::JMP {
+namespace Refurnisher::JMP {
     enum jType {
         JINT32 = 0,
         JSTRING = 1,
