@@ -5,7 +5,7 @@ int main(int argc, char* argv[]){
     bStream::CFileStream f("test_files/characterinfo", bStream::Endianess::Big, bStream::OpenMode::In);
     nlohmann::json jsonOut;
 
-    RefurnisherCore::JMP::DecompileJMP(jsonOut, f);
+    Refurnisher::JMP::DecompileJMP(jsonOut, f);
 
     std::ofstream jsonFile;
     jsonFile.open("test.json", std::ios::openmode::_S_out);
