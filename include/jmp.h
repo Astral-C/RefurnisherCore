@@ -2,7 +2,7 @@
 #include <map>
 #include <cstring>
 #include <algorithm>
-#include "bstream.h"
+#include "../bstream/bstream.h"
 #include "json.hpp"
 
 namespace Refurnisher::JMP {
