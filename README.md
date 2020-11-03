@@ -12,3 +12,7 @@ Provide functions for converting to/from in-game formats to intermediate formats
  - JMP <-> JSON Serialization and Deserialization
  - (Planned) Collision generation from model formats and a custom intermediate format
  - (Planned) Bin Model Loading/Saving
+
+
+### How to build
+When cloing make sure to do `git clone --recursive`, then simply run `cmake` then `make`.
