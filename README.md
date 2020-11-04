@@ -15,4 +15,6 @@ Provide functions for converting to/from in-game formats to intermediate formats
 
 
 ### How to build
-When cloing make sure to do `git clone --recursive`, then simply run `cmake` then `make`.
+Clone the repository with `git clone --recursive`, then simply run `cmake .` and `make`. 
+
+Currently there are no options to disable building and running the tests, though this does not matter as the library will still build properly regardless. This will be fixed in the future.
